@@ -41,7 +41,6 @@ myConfig = def {
         spawnOnce "xsetroot -cursor_name left_ptr"
         spawnOnce "feh --bg-fill --no-fehbg ~/.xmonad/bg.png"
         spawnOnce "trayer --edge top --align right --SetDockType true --SetPartialStrut true --expand true --width 10 --transparent true --tint 0x5f5f5f --height 16 &"
-        spawnOnce "volumeicon &"
         spawnOnce "picom --backend glx --xrender-sync-fence &"
 }
 
