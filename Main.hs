@@ -4,6 +4,7 @@ import XMonad.ManageHook
 
 -- Actions
 import XMonad.Actions.Submap
+import XMonad.Actions.WindowNavigation
 
 -- Utils
 import XMonad.Util.ClickableWorkspaces
@@ -31,13 +32,23 @@ modm = mod4Mask
 
 -- Main function
 main :: IO ()
-main = xmonad
+main = do
+    -- Up, Left, Down, Right
+    cfg <- withWindowNavigation (xK_k, xK_h, xK_j, xK_l) myConfig
+    xmonad
      . ewmhFullscreen
      . ewmh
      . withEasySB (statusBarProp "xmobar" (clickablePP myXmobarPP)) defToggleStrutsKey
-     $ myConfig
-     `additionalKeysP`
-     [
+     $ cfg
+
+-- Modal mappings
+modalmap :: M.Map (KeyMask, KeySym) (X ()) -> X ()
+modalmap s = submap $ M.map (>> modalmap s) s
+
+-- Configuration
+myConfig = additionalKeysP (removeKeysP xConf remKeys) myKeys
+
+myKeys = [
          -- BSP
          ("M-r", modalmap $ mkKeymap myConfig [
           ("h", sendMessage $ ExpandTowards L),
@@ -52,29 +63,19 @@ main = xmonad
          , ("M-s",            sendMessage $ Swap)
          , ("M-M1-s",         sendMessage $ Rotate)
          , ("M-S-C-j",        sendMessage $ SplitShift Prev)
-         , ("M-S-C-k",        sendMessage $ SplitShift Next)
-     ]
-     -- `additionalKeysP`
-     --    [
-     --        ("<XF86AudioLowerVolume>", spawn "amixer set Master 1%-"),
-     --        ("<XF86AudioRaiseVolume>", spawn "amixer set Master 1%+")
-     --    ]
+         , ("M-S-C-k",        sendMessage $ SplitShift Next) ]
 
--- Modal mappings
-modalmap :: M.Map (KeyMask, KeySym) (X ()) -> X ()
-modalmap s = submap $ M.map (>> modalmap s) s
+remKeys = [ "M-h", "M-j", "M-k", "M-l"]
 
--- Configuration
-myConfig = def {
+xConf = def {
     modMask = mod4Mask,
-    terminal = "st -e fish",
-    layoutHook = myLayout,
-    startupHook = do
-        spawnOnce "xsetroot -cursor_name left_ptr"
-        spawnOnce "feh --bg-fill --no-fehbg ~/.xmonad/bg.png"
-        spawnOnce "trayer --edge top --align right --SetDockType true --SetPartialStrut true --expand true --width 10 --transparent true --tint 0x5f5f5f --height 16 &"
+            terminal = "kitty -e fish",
+            layoutHook = myLayout,
+            startupHook = do
+                spawnOnce "xsetroot -cursor_name left_ptr"
+                spawnOnce "feh --bg-fill --no-fehbg ~/.xmonad/bg.png"
+                spawnOnce "trayer --edge top --align right --SetDockType true --SetPartialStrut true --expand true --width 10 --transparent true --tint 0x5f5f5f --height 16 &"
 }
-
 
 -- Simple managehook, lets dialog boxes float.
 myManageHook :: ManageHook
@@ -94,6 +95,7 @@ myLayout = bsp ||| tiled ||| Mirror tiled ||| Full ||| threeCol
     ratio   = 1/2    -- Default proportion of screen occupied by master pane
     delta   = 3/100  -- Percent of screen to increment by when resizing panes
 
+-- Colors
 myXmobarPP :: PP
 myXmobarPP = xmobarPP {
     ppTitle = shorten 100,
