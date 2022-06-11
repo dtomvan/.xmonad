@@ -1,5 +1,5 @@
 xmonad.errors
-Main.hi
-Main.o
+*.hi
+*.o
 xmonad-x86_64-linux
 .stack-work
